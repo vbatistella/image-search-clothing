@@ -76,6 +76,22 @@ def order_by_distance(all_distances: list, key_value="vector"):
     l.sort(key=lambda d: d[key_value])
     return l
 
+def plot_results(ref, similar):
+    n = len(similar)
+    fig = plt.figure(figsize=(10, 7))
+
+    fig.add_subplot(2, n, (n//2)+1)
+    plt.imshow(ref)
+    plt.axis('off')
+    plt.title("Reference")
+
+    for i in range(n):
+        fig.add_subplot(2, n, n+i+1)
+        plt.imshow(similar[i])
+        plt.axis('off')
+
+    plt.show()
+
 def main():
     print_dataset_info("images")
     model = ResNet50(include_top=False, input_shape=IMG_SHAPE, pooling='max')
@@ -83,20 +99,25 @@ def main():
     if CALCULATE_VECTORS:
         vect = vector_all_images("images", model)
         save_vectors(vect, "vectorized.json")
-    
+
     filename = pick_random_from_set("images")
+    # 5273.jpg / 7909.jpg / 25650.jpg
+    # filename = "25650.jpg"
     im = get_image_data(f"images/{filename}")
     show_image(im)
     vector = get_vector("images", filename, model)
     all_vectors = get_json("vectorized.json")["images"]
     all_distances = get_all_distances_from_vector(vector, all_vectors)
     ordered = order_by_distance(all_distances, key_value="vector")
-    top_5 = ordered[:5]
+    top_5 = ordered[1:6]
 
+    similar = []
     for i in top_5:
         file = i["file"]
         im = get_image_data(f"images/{file}")
-        show_image(im)
+        similar.append(im)
+    
+    plot_results(im, similar)
 
 if __name__ == '__main__':
     main()
